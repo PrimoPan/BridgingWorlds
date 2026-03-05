@@ -22,7 +22,17 @@ public:
 	FBWConfirmEvent OnConfirm;
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(EditAnywhere, Category = "View")
+	bool bLimitPitch = true;
+
+	UPROPERTY(EditAnywhere, Category = "View", meta = (ClampMin = "-89.0", ClampMax = "89.0"))
+	float ViewPitchMinLimit = -60.0f;
+
+	UPROPERTY(EditAnywhere, Category = "View", meta = (ClampMin = "-89.0", ClampMax = "89.0"))
+	float ViewPitchMaxLimit = 89.0f;
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Components")

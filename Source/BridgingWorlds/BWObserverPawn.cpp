@@ -3,8 +3,11 @@
 #include "BWObserverPawn.h"
 
 #include "Camera/CameraComponent.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Components/InputComponent.h"
 #include "Components/SceneComponent.h"
+#include "Engine/Scene.h"
+#include "GameFramework/PlayerController.h"
 
 ABWObserverPawn::ABWObserverPawn()
 {
@@ -18,6 +21,34 @@ ABWObserverPawn::ABWObserverPawn()
 	bUseControllerRotationPitch = true;
 	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	// Keep panorama brightness comfortable without editing level assets.
+	CameraComponent->PostProcessBlendWeight = 1.0f;
+	CameraComponent->PostProcessSettings.bOverride_AutoExposureMethod = true;
+	CameraComponent->PostProcessSettings.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
+	CameraComponent->PostProcessSettings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+	CameraComponent->PostProcessSettings.AutoExposureApplyPhysicalCameraExposure = false;
+	CameraComponent->PostProcessSettings.bOverride_AutoExposureBias = true;
+	CameraComponent->PostProcessSettings.AutoExposureBias = -1.0f;
+}
+
+void ABWObserverPawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController == nullptr && GetWorld() != nullptr)
+	{
+		PlayerController = GetWorld()->GetFirstPlayerController();
+	}
+
+	if (bLimitPitch && PlayerController != nullptr && PlayerController->PlayerCameraManager != nullptr)
+	{
+		// Hide nadir/tripod area in panoramas for desktop mouse-look.
+		PlayerController->PlayerCameraManager->ViewPitchMin = ViewPitchMinLimit;
+		PlayerController->PlayerCameraManager->ViewPitchMax = ViewPitchMaxLimit;
+	}
 }
 
 void ABWObserverPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
